@@ -1,0 +1,6 @@
+emacs-app-devel 0
+amd64-mingw32-binutils 860
+amd64-mingw32-gcc 1344
+amd64-mingw32-libunicows 1880
+amd64-mingw32-runtime 3276
+amd64-mingw32-w32api 3763
