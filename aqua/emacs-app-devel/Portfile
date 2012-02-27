@@ -44,7 +44,8 @@ depends_lib     port:ncurses \
 use_parallel_build      yes
 
 patchfiles          patch-src_emacs.c.diff \
-                    patch-srgb.diff
+                    patch-srgb.diff \
+                    disable-interlocking.patch
 
 # if {${configure.compiler} == "clang"} {
 #     patchfiles-append   patch-clang.diff
