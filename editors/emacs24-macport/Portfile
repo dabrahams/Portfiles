@@ -108,6 +108,7 @@ platform darwin 11 {
    #if {[variant_isset fullscreen]} {
    #    patchfiles-append   patch-lion-fullscreen.diff
    #}
+   patchfiles-append   patch-hidpi.diff
    configure.cflags-append   -fno-pie -O2
    configure.ldflags-append  -fno-pie
 }
