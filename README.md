@@ -6,3 +6,15 @@ I just added
     
 to the front of `/opt/local/etc/macports/sources.conf`
 
+## Making changes
+
+### To calculate the new checksums
+
+    port -v checksum
+    
+### After adding a new `Portfile`
+
+in this directory,
+
+    portindex
+    
