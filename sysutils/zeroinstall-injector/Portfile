@@ -3,7 +3,7 @@
 PortSystem 1.0
 
 name		zeroinstall-injector
-version		1.5
+version		1.7
 platforms	darwin freebsd linux
 categories	sysutils
 license		LGPL
@@ -18,11 +18,12 @@ use.
 
 homepage	http://0install.net
 master_sites	sourceforge
-master_sites.mirror_subdir	zero-install
+master_sites.mirror_subdir	project/zero-install/injector/1.7
 use_bzip2	yes
-checksums	md5 a1e0291183520875704386ddbc22cc5d \
-		sha1 cf4a1ab3a74ac8698e863041e0cc48c47bb4c933 \
-		rmd160 404023429d7d7452d21add419d4ed09b8be3120b
+distfiles       zeroinstall-injector-1.7.tar.bz2
+
+checksums           rmd160  46ac65794f57146afed45582d4ff43f05ffe5bb9 \
+                    sha256  4472d5964e14a16cec5a27bbfc169340b7e45781ec2429abeaa4726674987c2c
 
 depends_lib	port:python26 bin:gpg:gnupg
 depends_run	port:py26-gtk port:py26-xml bin:sudo:sudo
