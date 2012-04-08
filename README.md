@@ -6,15 +6,20 @@ I just added
     
 to the front of `/opt/local/etc/macports/sources.conf`
 
-## Making changes
+## Making Changes
 
-### To calculate the new checksums
+### To Calculate the New Checksums
 
     port -v checksum
     
-### After adding a new `Portfile`
+### After Adding a New `Portfile`
 
 in this directory,
 
     portindex
     
+## Official References
+
+* https://trac.macports.org/wiki/MaintainingAPort
+* http://guide.macports.org/#development
+
