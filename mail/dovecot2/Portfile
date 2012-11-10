@@ -174,8 +174,8 @@ if {[vercmp ${version} 2.1.0] > -1} {
 
         depends_lib-append          port:clucene
         configure.args-append       --with-lucene
-        configure.cppflags-append   -I/opt/local/include -I/opt/local/lib
-        configure.ldflags-append    -L/opt/local/lib/
+        configure.cppflags-append   -I${prefix}/include -I${prefix}/lib
+        configure.ldflags-append    -L${prefix}/lib/
     }
 }
 
