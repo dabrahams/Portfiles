@@ -1,0 +1,118 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
+# $Id: Portfile 89440 2012-01-29 10:29:46Z hum@macports.org $
+
+PortSystem          1.0
+
+set base_version    24.0.94
+set macport_version 2.90
+
+name                emacs24-macport
+version             ${base_version}-mac-${macport_version}
+
+categories          aqua editors
+maintainers         css hum openmaintainer
+
+description         The GNU Emacs text editor (Cocoa version)
+
+long_description    GNU Emacs is a self-documenting, customizable, extensible  \
+                    real-time display editor. This is a port of the latest GNU \
+                    Emacs source to the OpenStep (or NeXTstep) APIs, as        \
+                    implemented by Cocoa on OS X. It differs from Carbon ports \
+                    of GNU Emacs in that it makes a more concerted attempt     \
+                    from the ground up to follow OS X desktop and UI conventions.
+
+# Note that this distribution can support GNUstep as well, but that
+# configuration is untested at this time.
+
+homepage            http://www.gnu.org/software/emacs/
+platforms           darwin
+license             GPL-3+
+
+master_sites        ftp://ftp.math.s.chiba-u.ac.jp/emacs ftp://alpha.gnu.org/gnu/emacs/pretest gnu:emacs
+distname            emacs-${base_version}
+dist_subdir         emacs
+distfiles           emacs-${base_version}.tar.gz emacs-${version}.tar.gz
+
+checksums           emacs-${base_version}.tar.gz \
+                    rmd160  3593d6a003b556f3755ba6ea3f8a92ba1b5ba2af \
+                    sha256  238dacb608e74fce088cde61b82907ba6ae5d975e88f38a0b199dbdbdb28feb5 \
+                    emacs-${base_version}-mac-${macport_version}.tar.gz \
+                    rmd160  a84b2c33253342ad870038e0ff870ab95d74ad2a \
+                    sha256  6d64d062ac654fe041159c929d3cf340fbc2910106917b4210b11ef02affd312
+
+
+depends_lib         port:ncurses
+
+patchfiles          disable-interlocking.patch \
+                    patch-src_emacs.c.diff
+
+if {${configure.compiler} == "clang"} {
+    configure.compiler   gcc
+    #patchfiles-append   patch-clang.diff
+}
+
+pre-patch {
+    system "cd ${workpath}/emacs-${base_version} && patch -p0 < ../emacs-${version}/patch-mac"
+    system "cp -pR ${workpath}/emacs-${version}/mac ${workpath}/emacs-${base_version}"
+    system "rsync -av ${workpath}/emacs-${version}/src/ ${workpath}/emacs-${base_version}/src/"
+    system "cp -pR ${workpath}/emacs-${version}/lisp/term/mac-win.el ${workpath}/emacs-${base_version}/lisp/term"
+}
+
+post-patch {
+    reinplace "s|__PREFIX__|${prefix}|" ${worksrcpath}/src/emacs.c
+}
+
+configure.args      --with-mac --enable-mac-app=${destroot}${applications_dir} --without-x --without-dbus
+
+use_parallel_build  yes
+
+destroot {
+    system "cd ${workpath}/emacs-${base_version} && make prefix=${destroot}/opt/local install"
+    xinstall -m 755 -d ${destroot}${applications_dir}
+    #file copy ${worksrcpath}/mac/Emacs.app \
+    #    ${destroot}${applications_dir}
+    file copy ${filespath}/site-start.el ${destroot}/opt/local/share/emacs/site-lisp
+}
+
+post-destroot {
+    reinplace "s|__PREFIX__|${prefix}|g" \
+        ${destroot}/opt/local/share/emacs/site-lisp/site-start.el
+}
+
+# patch-fullscreen.diff
+#   http://gist.github.com/291150
+#   http://www.sanityinc.com/full-screen-support-for-cocoa-emacs-on-osx
+#variant fullscreen description {Add fullscreen patch} {
+#    patchfiles-append   patch-fullscreen.diff
+#}
+
+# inline and font patches are fetched from MacEmacsJP.
+#   http://svn.sourceforge.jp/svnroot/macemacsjp/inline_patch/trunk/
+#   revision 574.
+# patch-macemacsjp-inline.diff <= emacs-inline.patch
+# patch-macemacsjp-jpfont.diff <= font.patch
+variant inline description {Add inline patch from MacEmacsJP} {
+    patchfiles-append   patch-macemacsjp-inline.diff
+}
+
+variant jpfont description {Add Japanese font patch from MacEmacsJP} {
+    patchfiles-append   patch-macemacsjp-jpfont.diff
+}
+
+variant patches requires inline jpfont description {Add all patches: inline and jpfont} {}
+
+platform darwin 11 {
+   #patchfiles-append    patch-fix-title-bar.diff
+   # patch-lion-fullscreen.diff
+   #   https://github.com/downloads/typester/emacs/emacs-23-lion-fullscreen-test.patch
+   #if {[variant_isset fullscreen]} {
+   #    patchfiles-append   patch-lion-fullscreen.diff
+   #}
+   patchfiles-append   patch-hidpi.diff
+   configure.cflags-append   -fno-pie -O2
+   configure.ldflags-append  -fno-pie
+}
+
+livecheck.type      regex
+livecheck.url       http://ftp.gnu.org/gnu/emacs/?C=M&O=D
+livecheck.regex     emacs-(\\d+\\.\\d+\\w*)\\.tar

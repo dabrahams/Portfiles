@@ -1,54 +1,113 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
 # $Id: Portfile 89440 2012-01-29 10:29:46Z hum@macports.org $
 
-PortSystem          1.0
+PortSystem 1.0
+PortGroup  muniversal 1.0
 
-set base_version    24.0.94
-set macport_version 2.90
+set base_version    24.1
+set macport_version 3.0
 
 name                emacs24-macport
+conflicts           xemacs
 version             ${base_version}-mac-${macport_version}
 
 categories          aqua editors
-maintainers         css hum openmaintainer
-
-description         The GNU Emacs text editor (Cocoa version)
-
-long_description    GNU Emacs is a self-documenting, customizable, extensible  \
-                    real-time display editor. This is a port of the latest GNU \
-                    Emacs source to the OpenStep (or NeXTstep) APIs, as        \
-                    implemented by Cocoa on OS X. It differs from Carbon ports \
-                    of GNU Emacs in that it makes a more concerted attempt     \
-                    from the ground up to follow OS X desktop and UI conventions.
-
-# Note that this distribution can support GNUstep as well, but that
-# configuration is untested at this time.
-
-homepage            http://www.gnu.org/software/emacs/
-platforms           darwin
 license             GPL-3+
+maintainers         dports openmaintainer
+description         The GNU Emacs text editor (Mitsuharu mac port)
+long_description \
+    GNU Emacs is a self-documenting, customizable, extensible real-time \
+    display editor. Users new to Emacs will be able to use basic        \
+    features fairly rapidly by studying the tutorial and using the      \
+    self-documentation features. Emacs also has an extensive            \
+    interactive manual browser. It is easily extensible since its       \
+    editing commands are written in Lisp.
 
-master_sites        ftp://ftp.math.s.chiba-u.ac.jp/emacs ftp://alpha.gnu.org/gnu/emacs/pretest gnu:emacs
+platforms           darwin
+homepage            http://www.gnu.org/software/emacs/emacs.html
+master_sites        gnu ftp://ftp.math.s.chiba-u.ac.jp/emacs 
+
+checksums           emacs-${base_version}.tar.gz \
+                    rmd160  0fed00042339f46b29449bd561d2f881d13d8d38 \
+                    sha256  60d26dd1d9c0b955543ae83a2f4dd7c8b6af59e16a06822cfb175f1bf97c8bab \
+                    emacs-${base_version}-mac-${macport_version}.tar.gz \
+                    rmd160  ac35262663082200ad718008adeadb9672056c4d \
+                    sha256  2a4fadfb6e95050e581202da0f5e48c37a033547d98fae085d02fb81d6460897
+
+patchfiles      patch-configure.diff
+
+
 distname            emacs-${base_version}
 dist_subdir         emacs
 distfiles           emacs-${base_version}.tar.gz emacs-${version}.tar.gz
 
-checksums           emacs-${base_version}.tar.gz \
-                    rmd160  3593d6a003b556f3755ba6ea3f8a92ba1b5ba2af \
-                    sha256  238dacb608e74fce088cde61b82907ba6ae5d975e88f38a0b199dbdbdb28feb5 \
-                    emacs-${base_version}-mac-${macport_version}.tar.gz \
-                    rmd160  a84b2c33253342ad870038e0ff870ab95d74ad2a \
-                    sha256  6d64d062ac654fe041159c929d3cf340fbc2910106917b4210b11ef02affd312
 
 
-depends_lib         port:ncurses
+configure.args  --without-x \
+                --without-dbus \
+                --without-gconf \
+                --without-libotf \
+                --without-m17n-flt \
+                --without-gpm \
+                --infodir ${prefix}/share/info/${name} \
+                --with-mac \
+                --enable-mac-app=${destroot}${applications_dir}
 
-patchfiles          disable-interlocking.patch \
-                    patch-src_emacs.c.diff
+depends_build   port:pkgconfig \
+                port:texinfo
+depends_lib     port:ncurses
 
-if {${configure.compiler} == "clang"} {
-    configure.compiler   gcc
-    #patchfiles-append   patch-clang.diff
+destroot {
+    system "cd ${workpath}/emacs-${base_version} && make prefix=${destroot}/opt/local install"
+    xinstall -m 755 -d ${destroot}${applications_dir}
+}
+
+post-destroot {
+    xinstall -d ${destroot}${prefix}/share/emacs/${version}/leim
+    delete ${destroot}${prefix}/bin/ctags
+    delete ${destroot}${prefix}/share/man/man1/ctags.1.gz
+}
+
+livecheck.type  regex
+livecheck.url   http://ftp.gnu.org/gnu/emacs/?C=M&O=D
+livecheck.regex ${name}-(\\d+\\.\\d+\\w*)\\.tar
+
+    post-patch {
+        # Leopard's XCode 3.1.x ld(1) man page claims -no_pie is supported, but it's not
+        if {${os.major} < 9} {
+            reinplace "s:-fno-pie::" ${worksrcpath}/src/s/darwin.h
+        } elseif {${os.major} > 10} {
+            reinplace "s:-fno-pie:-fno-pie -Wl,-no_pie:" ${worksrcpath}/src/s/darwin.h
+
+            # I believe the above reinplace is sufficient, but I'm leaving this to be safe --jeremyhu
+            configure.ldflags-append -Wl,-no_pie
+        }
+    reinplace "s|__PREFIX__|${prefix}|" ${worksrcpath}/src/emacs.c
+    }
+
+variant motif requires x11 description {Builds emacs as an X11 program with Motif widgets} {
+    configure.args-delete   --with-x-toolkit=lucid
+    configure.args-append   --with-x-toolkit=motif
+    depends_lib-append      lib:libXm:openmotif
+}
+
+variant gtk requires x11 description {Builds emacs as an X11 program with GTK+2 widgets} {
+    configure.args-delete   --with-x-toolkit=lucid
+    configure.args-delete   --without-gconf
+    configure.args-delete   --without-rsvg
+    configure.args-append   --with-x-toolkit=gtk
+    configure.args-append   --with-gconf
+    configure.args-append   --with-rsvg
+    depends_lib-append      port:gtk2 \
+                            path:lib/pkgconfig/glib-2.0.pc:glib2 \
+                            port:gconf \
+                            port:librsvg
+}
+
+variant dbus description {Builds emacs with D-Bus support} {
+    configure.args-delete   --without-dbus
+    configure.args-append   --with-dbus
+    depends_lib-append      port:dbus
 }
 
 pre-patch {
@@ -61,30 +120,6 @@ pre-patch {
 post-patch {
     reinplace "s|__PREFIX__|${prefix}|" ${worksrcpath}/src/emacs.c
 }
-
-configure.args      --with-mac --enable-mac-app=${destroot}${applications_dir} --without-x --without-dbus
-
-use_parallel_build  yes
-
-destroot {
-    system "cd ${workpath}/emacs-${base_version} && make prefix=${destroot}/opt/local install"
-    xinstall -m 755 -d ${destroot}${applications_dir}
-    #file copy ${worksrcpath}/mac/Emacs.app \
-    #    ${destroot}${applications_dir}
-    file copy ${filespath}/site-start.el ${destroot}/opt/local/share/emacs/site-lisp
-}
-
-post-destroot {
-    reinplace "s|__PREFIX__|${prefix}|g" \
-        ${destroot}/opt/local/share/emacs/site-lisp/site-start.el
-}
-
-# patch-fullscreen.diff
-#   http://gist.github.com/291150
-#   http://www.sanityinc.com/full-screen-support-for-cocoa-emacs-on-osx
-#variant fullscreen description {Add fullscreen patch} {
-#    patchfiles-append   patch-fullscreen.diff
-#}
 
 # inline and font patches are fetched from MacEmacsJP.
 #   http://svn.sourceforge.jp/svnroot/macemacsjp/inline_patch/trunk/
@@ -100,19 +135,3 @@ variant jpfont description {Add Japanese font patch from MacEmacsJP} {
 }
 
 variant patches requires inline jpfont description {Add all patches: inline and jpfont} {}
-
-platform darwin 11 {
-   #patchfiles-append    patch-fix-title-bar.diff
-   # patch-lion-fullscreen.diff
-   #   https://github.com/downloads/typester/emacs/emacs-23-lion-fullscreen-test.patch
-   #if {[variant_isset fullscreen]} {
-   #    patchfiles-append   patch-lion-fullscreen.diff
-   #}
-   patchfiles-append   patch-hidpi.diff
-   configure.cflags-append   -fno-pie -O2
-   configure.ldflags-append  -fno-pie
-}
-
-livecheck.type      regex
-livecheck.url       http://ftp.gnu.org/gnu/emacs/?C=M&O=D
-livecheck.regex     emacs-(\\d+\\.\\d+\\w*)\\.tar

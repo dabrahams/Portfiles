@@ -1,0 +1,73 @@
+diff -ruN imap-2002e.orig/src/c-client/mail.c imap-2002e/src/c-client/mail.c
+--- src/c-client/mail.c	2003-09-09 02:04:03.000000000 +0200
++++ src/c-client/mail.c	2004-11-23 20:05:28.000000000 +0200
+@@ -563,7 +563,7 @@
+     return NIL;
+   }
+ 				/* validate name, find driver factory */
+-  if (strlen (mailbox) < (NETMAXHOST+(NETMAXUSER*2)+NETMAXMBX+NETMAXSRV+50))
++  if (strlen (mailbox) < (NETMAXHOST+(NETMAXUSER*2)+NETMAXMBX+NETMAXSRV+NETMAXTUNNEL+50))
+     for (factory = maildrivers; factory && 
+ 	 ((factory->flags & DR_DISABLE) ||
+ 	  ((factory->flags & DR_LOCAL) && (*mailbox == '{')) ||
+@@ -669,6 +669,8 @@
+ 	}
+ 	if (!compare_cstring (s,"service") && (i < NETMAXSRV) && !*mb->service)
+ 	  lcase (strcpy (mb->service,v));
++        else if (!compare_cstring (s,"tunnel") && (i < NETMAXTUNNEL) && !*mb->tunnel)
++          strcpy (mb->tunnel,v);
+ 	else if (!compare_cstring (s,"user") && (i < NETMAXUSER) && !*mb->user)
+ 	  strcpy (mb->user,v);
+ 	else if (!compare_cstring (s,"authuser") && (i < NETMAXUSER) &&
+@@ -871,7 +873,7 @@
+     MM_LOG ("Can't create mailbox with such a name",ERROR);
+     return NIL;
+   }
+-  if (strlen (mailbox) >= (NETMAXHOST+(NETMAXUSER*2)+NETMAXMBX+NETMAXSRV+50)) {
++  if (strlen (mailbox) >= (NETMAXHOST+(NETMAXUSER*2)+NETMAXMBX+NETMAXSRV+NETMAXTUNNEL+50)) {
+     sprintf (tmp,"Can't create %.80s: %s",mailbox,(*mailbox == '{') ?
+ 	     "invalid remote specification" : "no such mailbox");
+     MM_LOG (tmp,ERROR);
+@@ -2348,7 +2350,7 @@
+     MM_LOG ("Can't append to mailbox with such a name",ERROR);
+     return NIL;
+   }
+-  if (strlen (mailbox) >= (NETMAXHOST+(NETMAXUSER*2)+NETMAXMBX+NETMAXSRV+50)) {
++  if (strlen (mailbox) >= (NETMAXHOST+(NETMAXUSER*2)+NETMAXMBX+NETMAXSRV+NETMAXTUNNEL+50)) {
+     sprintf (tmp,"Can't append %.80s: %s",mailbox,(*mailbox == '{') ?
+ 	     "invalid remote specification" : "no such mailbox");
+     MM_LOG (tmp,ERROR);
+diff -ruN imap-2002e.orig/src/c-client/mail.h imap-2002e/src/c-client/mail.h
+--- src/c-client/mail.h	2003-08-19 22:00:42.000000000 +0200
++++ src/c-client/mail.h	2004-11-23 20:06:12.000000000 +0200
+@@ -545,6 +545,7 @@
+ #define NETMAXUSER 65
+ #define NETMAXMBX (MAILTMPLEN/4)
+ #define NETMAXSRV 21
++#define NETMAXTUNNEL 256
+ typedef struct net_mailbox {
+   char host[NETMAXHOST];	/* host name (may be canonicalized) */
+   char orighost[NETMAXHOST];	/* host name before canonicalization */
+@@ -552,6 +553,7 @@
+   char authuser[NETMAXUSER];	/* authentication user name */
+   char mailbox[NETMAXMBX];	/* mailbox name */
+   char service[NETMAXSRV];	/* service name */
++  char tunnel[NETMAXTUNNEL];    /* ssh tunnel replacement */
+   unsigned long port;		/* TCP port number */
+   unsigned int anoflag : 1;	/* anonymous */
+   unsigned int dbgflag : 1;	/* debug flag */
+diff -ruN imap-2002e.orig/src/osdep/unix/tcp_unix.c imap-2002e/src/osdep/unix/tcp_unix.c
+--- src/osdep/unix/tcp_unix.c	2002-10-31 22:04:41.000000000 +0200
++++ src/osdep/unix/tcp_unix.c	2004-11-23 20:08:02.228289384 +0200
+@@ -355,7 +355,10 @@
+     (*bn) (BLOCK_NONE,NIL);
+   }
+ 
+-  if (*service == '*')		/* build ssh command */
++  if (*mb->tunnel)
++    sprintf (tmp,mb->tunnel,host,
++             mb->user[0] ? mb->user : myusername (),service + 1);
++  else if (*service == '*')		/* build ssh command */
+     sprintf (tmp,sshcommand,sshpath,host,
+ 	     mb->user[0] ? mb->user : myusername (),service + 1);
+   else sprintf (tmp,rshcommand,rshpath,host,
