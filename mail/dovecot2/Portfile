@@ -29,6 +29,7 @@ distname            ${base_name}-${version}
 depends_build       port:pkgconfig
 depends_lib         port:libiconv \
                     port:zlib \
+                    port:bzip2 \
                     port:openssl
 
 set default_internal_user   _dovecot
@@ -52,6 +53,7 @@ post-patch {
 configure.args      --sysconfdir=${prefix}/etc \
                     --localstatedir=${prefix}/var \
                     --with-zlib \
+                    --with-bzlib \
                     --with-ssl=openssl \
                     --with-ssldir=${prefix}/etc/ssl
 
