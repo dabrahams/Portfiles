@@ -1,0 +1,4 @@
+isync 616
+variants {async recursiveimap universal} portdir mail/isync description {Synchronize a maildir with an imap server} homepage http://isync.sourceforge.net/ epoch 0 platforms darwin name isync depends_lib {port:db53 port:openssl port:zlib} long_description {isync is a command line utility for synchronizing a remote IMAP mailbox with a local maildir-style mailbox. This is useful for working in disconnected mode, such as on a laptop. Modifications made locally and remotely are synchronized so that no message status flags are lost.} maintainers nomaintainer license unknown categories mail version 1.0.5 revision 1
+libstemmer 272
+portdir textproc/libstemmer description {Algorithmic Stemmer Library} depends_fetch bin:svn:subversion homepage http://snowball.tartarus.org epoch 0 platforms darwin name libstemmer license unknown maintainers nomaintainer version 0.1 categories textproc revision svn-556
