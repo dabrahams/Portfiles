@@ -51,6 +51,7 @@ post-patch {
 
 configure.args      --sysconfdir=${prefix}/etc \
                     --localstatedir=${prefix}/var \
+                    --with-zlib \
                     --with-ssl=openssl \
                     --with-ssldir=${prefix}/etc/ssl
 
