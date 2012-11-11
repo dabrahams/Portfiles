@@ -1,9 +1,9 @@
+# -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:ft=tcl:et:sw=4:ts=4:sts=4
 # $Id: Portfile 95119 2012-07-05 21:01:06Z mww@macports.org $
 
 PortSystem          1.0
 
 name                isync
-version             1.0.4
 revision        1
 categories          mail
 platforms           darwin
@@ -18,22 +18,46 @@ long_description    isync is a command line utility for synchronizing a \
                     on a laptop. Modifications made locally and remotely are \
                     synchronized so that no message status flags are lost.
 
-master_sites        sourceforge
+if {${subport} == ${name}} {
 
-checksums           md5     8a836a6f4b43cd38a8b8153048417616 \
-                    sha1    a327cc5b81946c7ccb3a26ddd971933e2e006ed3 \
-                    rmd160  23475533ff9848c38b95911eae6191ca03132185
+    version             1.0.5
+    master_sites        sourceforge
+    conflicts           isync-snapshot
+    checksums           md5     6a47b0b620ef61d4158e4f1b968ffb0f \
+        sha1    9d19cde13b644d6e394f06d292b60503396d0500 \
+        rmd160  180607a0633108ad59ea5a51d15b1f3c74b56a9a
 
-depends_lib         port:db46 port:openssl port:zlib
+    post-patch {
+        reinplace "s|ldb|ldb-5.3|g" \
+            ${worksrcpath}/src/compat/Makefile.in \
+            ${worksrcpath}/src/Makefile.in
+    }
+
+}
+
+subport isync-snapshot {
+
+    version             git-master-20121016
+    fetch.type          git
+    git.url             git://isync.git.sourceforge.net/gitroot/isync/isync
+    git.branch          45b11c63a503dd53674ead6f8617af61e7563b78
+    conflicts           isync
+    livecheck.type      none
+
+    pre-configure {
+        system "cd ${worksrcpath} && touch ChangeLog && ./autogen.sh"
+    }
+}
+
+depends_lib         port:db53 port:openssl port:zlib 
+depends_build       port:p5-timedate
 
 post-patch {
-    reinplace "s|ldb|ldb-4|g" \
-        ${worksrcpath}/src/compat/Makefile.in \
+    reinplace "s|ldb|ldb-5.3|g" \
         ${worksrcpath}/src/compat/Makefile.am \
-        ${worksrcpath}/src/Makefile.in \
         ${worksrcpath}/src/Makefile.am
 }
 
 configure.args      --mandir=${prefix}/share/man
-configure.cppflags-append   -I${prefix}/include/db46
-configure.ldflags-append    -L${prefix}/lib/db46 -ldb-4
+configure.cppflags-append   -I${prefix}/include/db53
+configure.ldflags-append    -L${prefix}/lib/db53
