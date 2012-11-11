@@ -1,12 +1,13 @@
-# $Id: Portfile 69520 2010-07-08 20:19:52Z jmr@macports.org $
+# $Id: Portfile 95119 2012-07-05 21:01:06Z mww@macports.org $
 
 PortSystem          1.0
 
 name                isync
-version             1.0.5
+version             1.0.4
 revision        1
 categories          mail
 platforms           darwin
+license             GPL-2
 maintainers         nomaintainer
 description         Synchronize a maildir with an imap server
 homepage            http://isync.sourceforge.net/
@@ -19,34 +20,20 @@ long_description    isync is a command line utility for synchronizing a \
 
 master_sites        sourceforge
 
-checksums           md5     6a47b0b620ef61d4158e4f1b968ffb0f \
-                    sha1    9d19cde13b644d6e394f06d292b60503396d0500 \
-                    rmd160  180607a0633108ad59ea5a51d15b1f3c74b56a9a
+checksums           md5     8a836a6f4b43cd38a8b8153048417616 \
+                    sha1    a327cc5b81946c7ccb3a26ddd971933e2e006ed3 \
+                    rmd160  23475533ff9848c38b95911eae6191ca03132185
 
-depends_lib         port:db53 port:openssl port:zlib 
+depends_lib         port:db46 port:openssl port:zlib
 
 post-patch {
-    reinplace "s|ldb|ldb-5.3|g" \
+    reinplace "s|ldb|ldb-4|g" \
         ${worksrcpath}/src/compat/Makefile.in \
         ${worksrcpath}/src/compat/Makefile.am \
         ${worksrcpath}/src/Makefile.in \
         ${worksrcpath}/src/Makefile.am
 }
 
-variant async description {Experimental async branch} {
-    patchfiles async.patch
-    depends_lib-append port:p5-timedate
-    use_autoreconf      yes
-    configure.compiler macports-gcc-4.7
-    # autoreconf.cmd      ./autogen.sh
-}
-
-variant recursiveimap description {Adds support for imap subfolders} {
-    post-patch {
-        reinplace "s|%s%%|%s\*|" ${worksrcpath}/src/drv_imap.c
-    }
-}
-
 configure.args      --mandir=${prefix}/share/man
-configure.cppflags-append   -I${prefix}/include/db53
-configure.ldflags-append    -L${prefix}/lib/db53
+configure.cppflags-append   -I${prefix}/include/db46
+configure.ldflags-append    -L${prefix}/lib/db46 -ldb-4
