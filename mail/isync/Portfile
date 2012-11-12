@@ -22,7 +22,7 @@ if {${subport} == ${name}} {
 
     version             1.0.5
     master_sites        sourceforge
-    conflicts           isync-snapshot
+    conflicts           isync-devel
     checksums           md5     6a47b0b620ef61d4158e4f1b968ffb0f \
         sha1    9d19cde13b644d6e394f06d292b60503396d0500 \
         rmd160  180607a0633108ad59ea5a51d15b1f3c74b56a9a
@@ -31,11 +31,13 @@ if {${subport} == ${name}} {
         reinplace "s|ldb|ldb-5.3|g" \
             ${worksrcpath}/src/compat/Makefile.in \
             ${worksrcpath}/src/Makefile.in
+        reinplace -E "s|\\<perl\\>|/opt/local/bin/perl5.12|g" \
+            ${worksrcpath}/Makefile.in
     }
 
 }
 
-subport isync-snapshot {
+subport isync-devel {
 
     version             git-master-20121016
     fetch.type          git
@@ -50,12 +52,14 @@ subport isync-snapshot {
 }
 
 depends_lib         port:db53 port:openssl port:zlib 
-depends_build       port:p5-timedate
+depends_build       port:p5.12-timedate
 
 post-patch {
     reinplace "s|ldb|ldb-5.3|g" \
         ${worksrcpath}/src/compat/Makefile.am \
         ${worksrcpath}/src/Makefile.am
+    reinplace -E "s|\\<perl\\>|/opt/local/bin/perl5.12|g" \
+        ${worksrcpath}/Makefile.am
 }
 
 configure.args      --mandir=${prefix}/share/man
