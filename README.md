@@ -1,10 +1,14 @@
 # My Local Portfiles
 
-I just added 
+I cloned this repository into /Library/Portfiles/localhost and added
 
-    file:///Users/dave/Public/Macports/Portfiles
+    file:///Library/Portfiles/localhost
     
 to the front of `/opt/local/etc/macports/sources.conf`
+
+See [this bug report](https://trac.macports.org/ticket/36950) if you
+think it would be nice to clone this repository under your home
+directory.  It wouldn't.
 
 ## Making Changes
 
