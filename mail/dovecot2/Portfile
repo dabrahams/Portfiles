@@ -177,6 +177,14 @@ if {[vercmp ${version} 2.1.0] > -1} {
         configure.cppflags-append   -I${prefix}/include -I${prefix}/lib
         configure.ldflags-append    -L${prefix}/lib/
     }
+
+    variant debug description {Enable lucene-debug support} {
+
+        depends_lib-append          port:clucene
+        configure.args-append       --with-lucene
+        configure.cppflags-append   -I${prefix}/include -I${prefix}/lib
+        configure.ldflags-append    -L${prefix}/lib/
+    }
 }
 
 variant libstemmer description {Use libstemmer for full-text search} {
