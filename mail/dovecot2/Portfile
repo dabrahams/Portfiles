@@ -181,7 +181,6 @@ if {[vercmp ${version} 2.1.0] > -1} {
 
 variant libstemmer description {Use libstemmer for full-text search} {
         depends_lib-append          port:libstemmer
-        configure.args-append       --with-libstemmer
         configure.cppflags-append   -I${prefix}/include
         configure.ldflags-append    -L${prefix}/lib/
 }
